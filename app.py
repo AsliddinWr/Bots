@@ -1,31 +1,34 @@
 from flask import Flask, request
-import requests, os
+import requests
+import os
 
 app = Flask(__name__)
 
-TOKEN = os.environ.get("8448435876:AAHDZ-4eNdvHLanYStLe_q_-hli8W3vU8_g")
-print("TOKEN =", TOKEN)  # 👈 MUHIM
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-API = f"https://api.telegram.org/bot{TOKEN}"
+@app.route("/", methods=["GET"])
+def home():
+    return "Bot ishlayapti ✅"
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    update = request.get_json(force=True)
-    print("UPDATE =", update)
+    data = request.get_json()
 
-    if "message" in update:
-        chat_id = update["message"]["chat"]["id"]
-        text = update["message"].get("text", "")
-        print("TEXT =", text)
+    print("UPDATE:", data)
 
-        r = requests.post(f"{API}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": "TEST OK"
-        })
-        print("TG RESPONSE =", r.text)
+    if "message" in data:
+        chat_id = data["message"]["chat"]["id"]
+        text = data["message"].get("text", "")
+
+        if text == "/start":
+            requests.post(f"{API_URL}/sendMessage", json={
+                "chat_id": chat_id,
+                "text": "Salom 👋 Bot ishlayapti!"
+            })
 
     return "ok", 200
 
-@app.route("/")
-def home():
-    return "Bot ishlayapti", 200
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
