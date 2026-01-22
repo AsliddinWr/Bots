@@ -1,6 +1,7 @@
 from flask import Flask, request
 import requests
 import os
+import json
 
 app = Flask(__name__)
 
@@ -13,19 +14,25 @@ def home():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True)
 
-    print("UPDATE:", data)
+    print("RAW DATA:", data)
 
-    if "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text", "")
+    if not data:
+        return "no data", 200
 
-        if text == "/start":
-            requests.post(f"{API_URL}/sendMessage", json={
-                "chat_id": chat_id,
-                "text": "Salom 👋 Bot ishlayapti!"
-            })
+    message = data.get("message")
+    if not message:
+        return "no message", 200
+
+    chat_id = message["chat"]["id"]
+    text = message.get("text", "")
+
+    if text == "/start":
+        requests.post(f"{API_URL}/sendMessage", json={
+            "chat_id": chat_id,
+            "text": "🔥 ISHLADI! Bot javob beryapti."
+        })
 
     return "ok", 200
 
