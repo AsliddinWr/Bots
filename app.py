@@ -1,6 +1,7 @@
 from flask import Flask, request
 import requests
 import os
+import json
 
 app = Flask(__name__)
 
@@ -14,36 +15,40 @@ def home():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    # JSON ni majburan o‘qiymiz
-    data = request.get_json(force=True)
+    try:
+        data = request.get_json(force=True)
+        print("RAW UPDATE:", json.dumps(data, indent=2))
 
-    # Render loglari uchun
-    print("UPDATE RECEIVED")
+        if "message" not in data:
+            print("NO MESSAGE")
+            return "ok", 200
 
-    if "message" not in data:
-        print("NO MESSAGE IN UPDATE")
+        chat_id = data["message"]["chat"]["id"]
+        text = data["message"].get("text", "")
+
+        print("CHAT_ID:", chat_id)
+        print("TEXT:", text)
+
+        if text == "/start":
+            payload = {
+                "chat_id": chat_id,
+                "text": "✅ BOT ISHLADI! /start QABUL QILINDI"
+            }
+
+            r = requests.post(
+                f"{API_URL}/sendMessage",
+                json=payload,
+                timeout=15
+            )
+
+            print("SEND STATUS:", r.status_code)
+            print("SEND BODY:", r.text)
+
         return "ok", 200
 
-    message = data["message"]
-    chat_id = message["chat"]["id"]
-    text = message.get("text", "")
-
-    print("TEXT:", text)
-
-    if text == "/start":
-        resp = requests.post(
-            f"{API_URL}/sendMessage",
-            json={
-                "chat_id": chat_id,
-                "text": "🔥 TABRIKLAYMAN! BOT ISHLADI 🎉"
-            },
-            timeout=15
-        )
-
-        print("SEND STATUS:", resp.status_code)
-        print("SEND RESPONSE:", resp.text)
-
-    return "ok", 200
+    except Exception as e:
+        print("ERROR:", str(e))
+        return "error", 500
 
 
 if __name__ == "__main__":
