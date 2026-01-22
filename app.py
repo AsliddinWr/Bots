@@ -1,7 +1,7 @@
 from flask import Flask, request
 import requests, os
 
-TOKEN = os.environ.get("BOT_TOKEN")
+TOKEN = os.environ.get("8448435876:AAHDZ-4eNdvHLanYStLe_q_-hli8W3vU8_g")
 URL = f"https://api.telegram.org/bot{TOKEN}/"
 
 app = Flask(__name__)
