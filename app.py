@@ -9,36 +9,39 @@ API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 @app.route("/", methods=["GET"])
 def home():
-    return "Bot ishlayapti ✅"
+    return "Bot ishlayapti ✅", 200
+
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    data = request.get_json(force=True, silent=True)
-    print("UPDATE:", data)
+    # JSON ni majburan o‘qiymiz
+    data = request.get_json(force=True)
 
-    if not data or "message" not in data:
-        print("NO MESSAGE")
+    # Render loglari uchun
+    print("UPDATE RECEIVED")
+
+    if "message" not in data:
+        print("NO MESSAGE IN UPDATE")
         return "ok", 200
 
-    chat_id = data["message"]["chat"]["id"]
-    text = data["message"].get("text", "")
+    message = data["message"]
+    chat_id = message["chat"]["id"]
+    text = message.get("text", "")
 
     print("TEXT:", text)
-    print("CHAT_ID:", chat_id)
-    print("BOT_TOKEN:", BOT_TOKEN)
 
     if text == "/start":
-        r = requests.post(
+        resp = requests.post(
             f"{API_URL}/sendMessage",
             json={
                 "chat_id": chat_id,
-                "text": "✅ BOT ISHLADI! Bu DEBUG javobi"
+                "text": "🔥 TABRIKLAYMAN! BOT ISHLADI 🎉"
             },
-            timeout=10
+            timeout=15
         )
 
-        print("SEND MESSAGE STATUS:", r.status_code)
-        print("SEND MESSAGE RESPONSE:", r.text)
+        print("SEND STATUS:", resp.status_code)
+        print("SEND RESPONSE:", resp.text)
 
     return "ok", 200
 
